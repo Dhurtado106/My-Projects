@@ -1,0 +1,40 @@
+# PowerShell script to manage AnyDesk service on Linux
+# Usage: ./anydesk_service.ps1 -Action start
+
+param(
+    [Parameter(Mandatory=$true)]
+    [ValidateSet("start", "stop", "status")]
+    [string]$Action
+)
+
+$serviceName = "anydesk"
+
+# Helper function to check if service is active
+function Get-ServiceStatus {
+    sudo systemctl is-active --quiet $serviceName
+    return $? # Returns True if exit code is 0
+}
+
+switch ($Action) {
+    "start" {
+        if (Get-ServiceStatus) {
+            Write-Host "AnyDesk is already running." -ForegroundColor Cyan
+        } else {
+            Write-Host "Starting AnyDesk service..."
+            sudo systemctl start $serviceName
+            if ($LASTEXITCODE -eq 0) { Write-Host "Successfully started." -ForegroundColor Green }
+        }
+    }
+    "stop" {
+        if (-not (Get-ServiceStatus)) {
+            Write-Host "AnyDesk is already stopped." -ForegroundColor Cyan
+        } else {
+            Write-Host "Stopping AnyDesk service..."
+            sudo systemctl stop $serviceName
+            if ($LASTEXITCODE -eq 0) { Write-Host "Successfully stopped." -ForegroundColor Yellow }
+        }
+    }
+    "status" {
+        sudo systemctl status $serviceName
+    }
+}
